@@ -485,9 +485,10 @@ namespace WowHeadParser.Entities
             {
                 m_creatureTemplateBuilder = new SqlBuilder("creature_template", "entry");
                 m_creatureTemplateBuilder.SetFieldsNames("minlevel", "maxlevel", "name", "subname", "modelid1", "rank", "type", "family");
-
-                m_creatureTemplateBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.minlevel, m_creatureTemplateData.maxlevel, m_creatureTemplateData.name, m_subname ?? "", m_modelid, m_isBoss ? "3" : "0", m_creatureTemplateData.type, m_creatureTemplateData.family);
-                returnSql += m_creatureTemplateBuilder.ToString() + "\n";
+                if(m_creatureTemplateData.minlevel != 0 && m_creatureTemplateData.maxlevel != 0) { 
+                    m_creatureTemplateBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.minlevel, m_creatureTemplateData.maxlevel, m_creatureTemplateData.name, m_subname ?? "", m_modelid, m_isBoss ? "3" : "0", m_creatureTemplateData.type, m_creatureTemplateData.family);
+                    returnSql += m_creatureTemplateBuilder.ToString() + "\n";
+                }
             }
 
             if (IsCheckboxChecked("health modifier") && m_creatureTemplateData.health != null)
@@ -516,9 +517,11 @@ namespace WowHeadParser.Entities
             {
                 SqlBuilder m_creatureMoneyBuilder = new SqlBuilder("creature_template", "entry", SqlQueryType.Update);
                 m_creatureMoneyBuilder.SetFieldsNames("mingold", "maxgold");
-
-                m_creatureMoneyBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.minGold, m_creatureTemplateData.maxGold);
-                returnSql += m_creatureMoneyBuilder.ToString() + "\n";
+                if(m_creatureTemplateData.minGold != null && m_creatureTemplateData.maxGold != null && m_creatureTemplateData.minGold != "0" && m_creatureTemplateData.maxGold != "0")
+                {
+                    m_creatureMoneyBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.minGold, m_creatureTemplateData.maxGold);
+                    returnSql += m_creatureMoneyBuilder.ToString() + "\n";
+                }
             }
 
             // Locales
