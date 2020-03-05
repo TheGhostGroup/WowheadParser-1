@@ -685,7 +685,7 @@ namespace WowHeadParser.Entities
                 m_creaturePickpocketingBuilder = new SqlBuilder("pickpocketing_loot_template", "entry", SqlQueryType.DeleteInsert);
                 m_creaturePickpocketingBuilder.SetFieldsNames("Item", "Reference", "Chance", "QuestRequired", "LootMode", "GroupId", "MinCount", "MaxCount", "Comment");
 
-                returnSql += "UPDATE creature_template SET skinloot = " + m_creatureTemplateData.id + " WHERE entry = " + m_creatureTemplateData.id + " AND skinloot = 0;\n";
+                returnSql += "UPDATE creature_template SET pickpocketloot = " + m_creatureTemplateData.id + " WHERE entry = " + m_creatureTemplateData.id + " AND pickpocketloot = 0;\n";
                 foreach (CreatureLootParsing creaturePickpocketingData in m_creaturePickpocketingDatas)
                 {
                     m_creaturePickpocketingBuilder.AppendFieldsValue(m_creatureTemplateData.id, // Entry
