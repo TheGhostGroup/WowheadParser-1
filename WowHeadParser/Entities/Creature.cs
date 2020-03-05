@@ -147,7 +147,7 @@ namespace WowHeadParser.Entities
 
             String creatureHtml = Tools.GetHtmlFromWowhead(GetWowheadUrl(), webClient);
 
-            if (creatureHtml.Contains("inputbox-error"))
+            if (creatureHtml.Contains("inputbox-error") || creatureHtml.Contains("database-detail-page-not-found-message"))
                 return false;
 
             String dataPattern = @"\$\.extend\(g_npcs\[" + m_creatureTemplateData.id + @"\], (.+)\);";
@@ -157,10 +157,11 @@ namespace WowHeadParser.Entities
             String creatureLootPattern = @"new Listview\({template: 'item', id: 'drops', name: LANG\.tab_drops, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \['count', 'percent'\],  showLootSpecs: [0-9],sort:\['noteworthy', '-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data:(.+)}\);";
             String creatureCurrencyPattern = @"new Listview\({template: 'currency', id: 'drop-currency', name: LANG\.tab_currencies, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'], _totalCount: [0-9]*, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data: (.+)}\);";
             String creatureSkinningPattern = @"new Listview\(\{template: 'item', id: 'skinning', name: LANG\.tab_skinning, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcskinning, [0-9]+\), _totalCount: ([0-9]+), data: (.+)}\);";
+            String creaturePickpocketingPattern = @"new Listview\(\{template: 'item', id: 'pickpocketing', name: LANG\.tab_pickpocketing, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcpickpocketing, [0-9]+\), _totalCount: ([0-9]+), data: (.+)}\);";
             String creatureTrainerPattern = @"new Listview\(\{template: 'spell', id: 'teaches-recipe', name: LANG\.tab_teaches, tabs: tabsRelated, parent: 'lkljbjkb574', visibleCols: \['source'\], data: (.+)\}\);";
             String creatureQuestStarterPattern = @"new Listview\(\{template: 'quest', id: 'starts', name: LANG\.tab_starts, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
             String creatureQuestEnderPattern = @"new Listview\(\{template: 'quest', id: 'ends', name: LANG\.tab_ends, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
-            String creatureMoneyPattern = @"money\\x3D([0-9]+)\\x5D";
+            String creatureMoneyPattern = @"\[money=([0-9]+)\]";
 
             String creatureTemplateDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, dataPattern);
             String creatureHealthDataJSon   = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureHealthPattern);
@@ -191,6 +192,14 @@ namespace WowHeadParser.Entities
             {
                 CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creatureSkinningJSon);
                 SetCreatureSkinningData(creatureLootDatas, Int32.Parse(creatureSkinningCount));
+            }
+
+            String creaturePickpocketingCount = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 0);
+            String creaturePickpocketingJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 1);
+            if (creaturePickpocketingJSon != null)
+            {
+                CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creaturePickpocketingJSon);
+                SetCreaturePickpocketingData(creatureLootDatas, Int32.Parse(creaturePickpocketingCount));
             }
 
             String creatureTrainerJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureTrainerPattern);
@@ -381,7 +390,7 @@ namespace WowHeadParser.Entities
 
             m_creatureLootDatas = lootsData.ToArray();
         }
-
+        
         public void SetCreatureSkinningData(CreatureLootItemParsing[] creatureSkinningDatas, int totalCount)
         {
             for (uint i = 0; i < creatureSkinningDatas.Length; ++i)
@@ -392,6 +401,18 @@ namespace WowHeadParser.Entities
             }
 
             m_creatureSkinningDatas = creatureSkinningDatas;
+        }
+
+        public void SetCreaturePickpocketingData(CreatureLootItemParsing[] creaturePickpocketingDatas, int totalCount)
+        {
+            for (uint i = 0; i < creaturePickpocketingDatas.Length; ++i)
+            {
+                float percent = (float)creaturePickpocketingDatas[i].count * 100 / (float)totalCount;
+
+                creaturePickpocketingDatas[i].percent = Tools.NormalizeFloat(percent);
+            }
+
+            m_creaturePickpocketingDatas = creaturePickpocketingDatas;
         }
 
         private int GetFactionFromReact()
@@ -615,6 +636,29 @@ namespace WowHeadParser.Entities
                 returnSql += m_creatureSkinningBuilder.ToString() + "\n";
             }
 
+            if (IsCheckboxChecked("pickpocketing") && m_creaturePickpocketingDatas != null)
+            {
+                m_creaturePickpocketingBuilder = new SqlBuilder("pickpocketing_loot_template", "entry", SqlQueryType.DeleteInsert);
+                m_creaturePickpocketingBuilder.SetFieldsNames("Item", "Reference", "Chance", "QuestRequired", "LootMode", "GroupId", "MinCount", "MaxCount", "Comment");
+
+                returnSql += "UPDATE creature_template SET skinloot = " + m_creatureTemplateData.id + " WHERE entry = " + m_creatureTemplateData.id + " AND skinloot = 0;\n";
+                foreach (CreatureLootParsing creaturePickpocketingData in m_creaturePickpocketingDatas)
+                {
+                    m_creaturePickpocketingBuilder.AppendFieldsValue(m_creatureTemplateData.id, // Entry
+                                                                creaturePickpocketingData.id, // Item
+                                                                0, // Reference
+                                                                creaturePickpocketingData.percent, // Chance
+                                                                0, // QuestRequired
+                                                                1, // LootMode
+                                                                0, // GroupId
+                                                                creaturePickpocketingData.stack[0], // MinCount
+                                                                creaturePickpocketingData.stack[1], // MaxCount
+                                                                ""); // Comment
+                }
+
+                returnSql += m_creaturePickpocketingBuilder.ToString() + "\n";
+            }
+
             if (IsCheckboxChecked("trainer") && m_creatureTrainerDatas != null)
             {
                 m_creatureTrainerBuilder = new SqlBuilder("npc_trainer", "entry", SqlQueryType.DeleteInsert);
@@ -664,6 +708,7 @@ namespace WowHeadParser.Entities
         protected NpcVendorParsing[] m_npcVendorDatas;
         protected CreatureLootParsing[] m_creatureLootDatas;
         protected CreatureLootItemParsing[] m_creatureSkinningDatas;
+        protected CreatureLootItemParsing[] m_creaturePickpocketingDatas;
         protected CreatureTrainerParsing[] m_creatureTrainerDatas;
         protected QuestStarterEnderParsing[] m_creatureQuestStarterDatas;
         protected QuestStarterEnderParsing[] m_creatureQuestEnderDatas;
@@ -674,6 +719,7 @@ namespace WowHeadParser.Entities
         protected SqlBuilder m_creatureLootBuilder;
         protected SqlBuilder m_creatureReferenceLootBuilder;
         protected SqlBuilder m_creatureSkinningBuilder;
+        protected SqlBuilder m_creaturePickpocketingBuilder;
         protected SqlBuilder m_creatureTrainerBuilder;
         protected SqlBuilder m_creatureQuestStarterBuilder;
         protected SqlBuilder m_creatureQuestEnderBuilder;

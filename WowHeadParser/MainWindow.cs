@@ -202,6 +202,7 @@ namespace WowHeadParser
                     selectList.Items.Add("vendor");
                     selectList.Items.Add("loot");
                     selectList.Items.Add("skinning");
+                    selectList.Items.Add("pickpocketing");
                     selectList.Items.Add("trainer");
                     selectList.Items.Add("quest starter");
                     selectList.Items.Add("quest ender");
