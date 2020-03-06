@@ -153,12 +153,12 @@ namespace WowHeadParser
                 StartParsing();
 
                 setProgressBar(100);
-                timeLeftLabel.Text = "Terminé (" + (currentId + 1) + "/" + ids.Count + ")";
+                MessageBox.Show("Complete (" + (currentId + 1) + "/" + ids.Count + ")");
             }
             else
             {
                 setProgressBar(100);
-                timeLeftLabel.Text = "Terminé";
+                MessageBox.Show("Complete");
                 SetStartButtonEnableState(true);
                 currentId = 0;
             }
@@ -282,5 +282,15 @@ namespace WowHeadParser
         private int currentId;
         private List<String> ids;
         private String m_fileName;
+
+        private void comboBoxChoice_MouseClick(object sender, MouseEventArgs e)
+        {
+            comboBoxChoice.Show();
+        }
+
+        private void comboBoxEntity_MouseClick(object sender, MouseEventArgs e)
+        {
+            comboBoxEntity.Show();
+        }
     }
 }
