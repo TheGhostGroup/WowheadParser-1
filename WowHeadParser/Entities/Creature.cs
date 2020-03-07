@@ -149,124 +149,128 @@ namespace WowHeadParser.Entities
             String creatureHtml = Tools.GetHtmlFromWowhead(GetWowheadUrl(), webClient);
 
             if (creatureHtml.Contains("inputbox-error") || creatureHtml.Contains("database-detail-page-not-found-message"))
+            {
                 return false;
-
-            String dataPattern = @"\$\.extend\(g_npcs\[" + m_creatureTemplateData.id + @"\], (.+)\);";
-            String creatureHealthPattern = @"<div>(?:Health|Vie) : ((?:\d|,|\.)+)</div>";
-            String creatureMoneyPattern = @"\[money=([0-9]+)\]";
-
-            String creatureTemplateDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, dataPattern);
-            if (creatureTemplateDataJSon != null)
-            {
-                CreatureTemplateParsing creatureTemplateData = JsonConvert.DeserializeObject<CreatureTemplateParsing>(creatureTemplateDataJSon);
-
-                String creatureHealthDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureHealthPattern);
-                String creatureMoneyData = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureMoneyPattern);
-                SetCreatureTemplateData(creatureTemplateData, creatureMoneyData, creatureHealthDataJSon);
-
-                // Without m_creatureTemplateData we can't really do anything, so return false
-                if (m_creatureTemplateData == null)
-                    return false;
             }
+            else
+            { 
+                String dataPattern = @"\$\.extend\(g_npcs\[" + m_creatureTemplateData.id + @"\], (.+)\);";
+                String creatureHealthPattern = @"<div>(?:Health|Vie) : ((?:\d|,|\.)+)</div>";
+                String creatureMoneyPattern = @"\[money=([0-9]+)\]";
 
-            if (IsCheckboxChecked("template"))
-            {
-                String modelPattern = @"ModelViewer\.show\(\{ type: [0-9]+, typeId: " + m_creatureTemplateData.id + @", displayId: ([0-9]+)";
-                String modelId = Tools.ExtractJsonFromWithPattern(creatureHtml, modelPattern);
-                m_modelid = modelId != null ? Int32.Parse(modelId) : 0;
-            }
-
-            if (IsCheckboxChecked("vendor"))
-            {
-                String vendorPattern = @"new Listview\({template: 'item', id: 'sells', .+?, data: (.+)}\);";
-                String npcVendorJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, vendorPattern);
-                if (npcVendorJSon != null)
+                String creatureTemplateDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, dataPattern);
+                if (creatureTemplateDataJSon != null)
                 {
-                    NpcVendorParsing[] npcVendorDatas = JsonConvert.DeserializeObject<NpcVendorParsing[]>(npcVendorJSon);
-                    SetNpcVendorData(npcVendorDatas);
+                    CreatureTemplateParsing creatureTemplateData = JsonConvert.DeserializeObject<CreatureTemplateParsing>(creatureTemplateDataJSon);
+
+                    String creatureHealthDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureHealthPattern);
+                    String creatureMoneyData = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureMoneyPattern);
+                    SetCreatureTemplateData(creatureTemplateData, creatureMoneyData, creatureHealthDataJSon);
+
+                    // Without m_creatureTemplateData we can't really do anything, so return false
+                    if (m_creatureTemplateData == null)
+                        return false;
                 }
-            }
 
-            if (IsCheckboxChecked("loot"))
-            {
-                String creatureLootPattern = @"new Listview\({template: 'item', id: 'drops', name: LANG\.tab_drops, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \['count', 'percent'\],  showLootSpecs: [0-9],sort:\['noteworthy', '-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data:(.+)}\);";
-                String creatureCurrencyPattern = @"new Listview\({template: 'currency', id: 'drop-currency', name: LANG\.tab_currencies, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'], _totalCount: [0-9]*, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data: (.+)}\);";
-
-                String creatureLootJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureLootPattern);
-                String creatureLootCurrencyJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureCurrencyPattern);
-                if (creatureLootJSon != null || creatureLootCurrencyJSon != null)
+                if (IsCheckboxChecked("template"))
                 {
-                    CreatureLootItemParsing[] creatureLootDatas = creatureLootJSon != null ? JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creatureLootJSon) : new CreatureLootItemParsing[0];
-                    CreatureLootCurrencyParsing[] creatureLootCurrencyDatas = creatureLootCurrencyJSon != null ? JsonConvert.DeserializeObject<CreatureLootCurrencyParsing[]>(creatureLootCurrencyJSon) : new CreatureLootCurrencyParsing[0];
-
-                    SetCreatureLootData(creatureLootDatas, creatureLootCurrencyDatas);
+                    String modelPattern = @"ModelViewer\.show\(\{ type: [0-9]+, typeId: " + m_creatureTemplateData.id + @", displayId: ([0-9]+)";
+                    String modelId = Tools.ExtractJsonFromWithPattern(creatureHtml, modelPattern);
+                    m_modelid = modelId != null ? Int32.Parse(modelId) : 0;
                 }
-            }
 
-            if (IsCheckboxChecked("skinning"))
-            {
-                String creatureSkinningPattern = @"new Listview\(\{template: 'item', id: 'skinning', name: LANG\.tab_skinning, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcskinning, [0-9]+\), _totalCount: ([0-9]+), data: (.+)}\);";
-
-                String creatureSkinningCount = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureSkinningPattern, 0);
-                String creatureSkinningJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureSkinningPattern, 1);
-                if (creatureSkinningJSon != null)
+                if (IsCheckboxChecked("vendor"))
                 {
-                    CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creatureSkinningJSon);
-                    SetCreatureSkinningData(creatureLootDatas, Int32.Parse(creatureSkinningCount));
+                    String vendorPattern = @"new Listview\({template: 'item', id: 'sells', .+?, data: (.+)}\);";
+                    String npcVendorJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, vendorPattern);
+                    if (npcVendorJSon != null)
+                    {
+                        NpcVendorParsing[] npcVendorDatas = JsonConvert.DeserializeObject<NpcVendorParsing[]>(npcVendorJSon);
+                        SetNpcVendorData(npcVendorDatas);
+                    }
                 }
-            }
 
-            if (IsCheckboxChecked("pickpocketing"))
-            {
+                if (IsCheckboxChecked("loot"))
+                {
+                    String creatureLootPattern = @"new Listview\({template: 'item', id: 'drops', name: LANG\.tab_drops, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \['count', 'percent'\],  showLootSpecs: [0-9],sort:\['noteworthy', '-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data:(.+)}\);";
+                    String creatureCurrencyPattern = @"new Listview\({template: 'currency', id: 'drop-currency', name: LANG\.tab_currencies, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'], _totalCount: [0-9]*, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data: (.+)}\);";
+
+                    String creatureLootJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureLootPattern);
+                    String creatureLootCurrencyJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureCurrencyPattern);
+                    if (creatureLootJSon != null || creatureLootCurrencyJSon != null)
+                    {
+                        CreatureLootItemParsing[] creatureLootDatas = creatureLootJSon != null ? JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creatureLootJSon) : new CreatureLootItemParsing[0];
+                        CreatureLootCurrencyParsing[] creatureLootCurrencyDatas = creatureLootCurrencyJSon != null ? JsonConvert.DeserializeObject<CreatureLootCurrencyParsing[]>(creatureLootCurrencyJSon) : new CreatureLootCurrencyParsing[0];
+
+                        SetCreatureLootData(creatureLootDatas, creatureLootCurrencyDatas);
+                    }
+                }
+
+                if (IsCheckboxChecked("skinning"))
+                {
+                    String creatureSkinningPattern = @"new Listview\(\{template: 'item', id: 'skinning', name: LANG\.tab_skinning, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcskinning, [0-9]+\), _totalCount: ([0-9]+), data: (.+)}\);";
+
+                    String creatureSkinningCount = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureSkinningPattern, 0);
+                    String creatureSkinningJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureSkinningPattern, 1);
+                    if (creatureSkinningJSon != null)
+                    {
+                        CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creatureSkinningJSon);
+                        SetCreatureSkinningData(creatureLootDatas, Int32.Parse(creatureSkinningCount));
+                    }
+                }
+
+                if (IsCheckboxChecked("pickpocketing"))
+                {
                 
-                String creaturePickpocketingPattern = @"new Listview\(\{template: 'item', id: 'pickpocketing', name: LANG\.tab_pickpocketing, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcpickpocketing, [0-9]+\), _totalCount: ([0-9]+), data:(.+)}\);";
+                    String creaturePickpocketingPattern = @"new Listview\(\{template: 'item', id: 'pickpocketing', name: LANG\.tab_pickpocketing, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_npcpickpocketing, [0-9]+\), _totalCount: ([0-9]+), data:(.+)}\);";
 
-                String creaturePickpocketingCount = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 0);
-                String creaturePickpocketingJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 1);
-                if (creaturePickpocketingJSon != null)
-                {
-                    CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creaturePickpocketingJSon);
-                    SetCreaturePickpocketingData(creatureLootDatas, Int32.Parse(creaturePickpocketingCount));
+                    String creaturePickpocketingCount = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 0);
+                    String creaturePickpocketingJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creaturePickpocketingPattern, 1);
+                    if (creaturePickpocketingJSon != null)
+                    {
+                        CreatureLootItemParsing[] creatureLootDatas = JsonConvert.DeserializeObject<CreatureLootItemParsing[]>(creaturePickpocketingJSon);
+                        SetCreaturePickpocketingData(creatureLootDatas, Int32.Parse(creaturePickpocketingCount));
+                    }
                 }
-            }
 
-            if (IsCheckboxChecked("trainer"))
-            {
-                String creatureTrainerPattern = @"new Listview\(\{template: 'spell', id: 'teaches-recipe', name: LANG\.tab_teaches, tabs: tabsRelated, parent: 'lkljbjkb574', visibleCols: \['source'\], data: (.+)\}\);";
-
-                String creatureTrainerJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureTrainerPattern);
-                if (creatureTrainerJSon != null)
+                if (IsCheckboxChecked("trainer"))
                 {
-                    CreatureTrainerParsing[] creatureTrainerDatas = JsonConvert.DeserializeObject<CreatureTrainerParsing[]>(creatureTrainerJSon);
-                    m_creatureTrainerDatas = creatureTrainerDatas;
+                    String creatureTrainerPattern = @"new Listview\(\{template: 'spell', id: 'teaches-recipe', name: LANG\.tab_teaches, tabs: tabsRelated, parent: 'lkljbjkb574', visibleCols: \['source'\], data: (.+)\}\);";
+
+                    String creatureTrainerJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureTrainerPattern);
+                    if (creatureTrainerJSon != null)
+                    {
+                        CreatureTrainerParsing[] creatureTrainerDatas = JsonConvert.DeserializeObject<CreatureTrainerParsing[]>(creatureTrainerJSon);
+                        m_creatureTrainerDatas = creatureTrainerDatas;
+                    }
                 }
-            }
 
-            if (IsCheckboxChecked("quest starter"))
-            {
-                String creatureQuestStarterPattern = @"new Listview\(\{template: 'quest', id: 'starts', name: LANG\.tab_starts, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
-
-                String creatureQuestStarterJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureQuestStarterPattern);
-                if (creatureQuestStarterJSon != null)
+                if (IsCheckboxChecked("quest starter"))
                 {
-                    QuestStarterEnderParsing[] creatureQuestStarterDatas = JsonConvert.DeserializeObject<QuestStarterEnderParsing[]>(creatureQuestStarterJSon);
-                    m_creatureQuestStarterDatas = creatureQuestStarterDatas;
+                    String creatureQuestStarterPattern = @"new Listview\(\{template: 'quest', id: 'starts', name: LANG\.tab_starts, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
+
+                    String creatureQuestStarterJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureQuestStarterPattern);
+                    if (creatureQuestStarterJSon != null)
+                    {
+                        QuestStarterEnderParsing[] creatureQuestStarterDatas = JsonConvert.DeserializeObject<QuestStarterEnderParsing[]>(creatureQuestStarterJSon);
+                        m_creatureQuestStarterDatas = creatureQuestStarterDatas;
+                    }
                 }
-            }
 
-            if (IsCheckboxChecked("quest ender"))
-            {
-                String creatureQuestEnderPattern = @"new Listview\(\{template: 'quest', id: 'ends', name: LANG\.tab_ends, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
-
-                String creatureQuestEnderJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureQuestEnderPattern);
-                if (creatureQuestEnderJSon != null)
+                if (IsCheckboxChecked("quest ender"))
                 {
-                    QuestStarterEnderParsing[] creatureQuestEnderDatas = JsonConvert.DeserializeObject<QuestStarterEnderParsing[]>(creatureQuestEnderJSon);
-                    m_creatureQuestEnderDatas = creatureQuestEnderDatas;
-                }
-            }
+                    String creatureQuestEnderPattern = @"new Listview\(\{template: 'quest', id: 'ends', name: LANG\.tab_ends, tabs: tabsRelated, parent: 'lkljbjkb574', data: (.+)\}\);";
 
-            return true;
+                    String creatureQuestEnderJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureQuestEnderPattern);
+                    if (creatureQuestEnderJSon != null)
+                    {
+                        QuestStarterEnderParsing[] creatureQuestEnderDatas = JsonConvert.DeserializeObject<QuestStarterEnderParsing[]>(creatureQuestEnderJSon);
+                        m_creatureQuestEnderDatas = creatureQuestEnderDatas;
+                    }
+                }
+
+                return true;
+            }
         }
 
         public void SetCreatureTemplateData(CreatureTemplateParsing creatureData, String money, String creatureHealthDataJSon)
@@ -337,6 +341,7 @@ namespace WowHeadParser.Entities
                 {
                     npcVendorDatas[i].integerCost = 0;
                     npcVendorDatas[i].integerExtendedCost = 0;
+                    Console.WriteLine("Erreur : " + ex);
                 }
             }
 
@@ -421,7 +426,10 @@ namespace WowHeadParser.Entities
                 {
                     currentItemParsing = (CreatureLootItemParsing)allLootData[i];
                 }
-                catch (Exception ex) { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex);
+                }
 
                 allLootData[i].questRequired = (currentItemParsing != null && currentItemParsing.classs == 12) ? "1" : "0";
                 allLootData[i].percent = Tools.NormalizeFloat(percent);
@@ -553,9 +561,12 @@ namespace WowHeadParser.Entities
             {
                 m_npcVendorBuilder = new SqlBuilder("npc_vendor", "entry", SqlQueryType.DeleteInsert);
                 m_npcVendorBuilder.SetFieldsNames("slot", "item", "maxcount", "incrtime", "ExtendedCost", "type", "PlayerConditionID");
-
+                int Slot = 1;
                 foreach (NpcVendorParsing npcVendorData in m_npcVendorDatas)
-                    m_npcVendorBuilder.AppendFieldsValue(m_creatureTemplateData.id, npcVendorData.slot, npcVendorData.id, npcVendorData.avail, npcVendorData.incrTime, npcVendorData.integerExtendedCost, 1, 0);
+                {
+                    m_npcVendorBuilder.AppendFieldsValue(m_creatureTemplateData.id, Slot, npcVendorData.id, npcVendorData.avail, npcVendorData.incrTime, npcVendorData.integerExtendedCost, 1, 0);
+                    ++Slot;
+                }
 
                 returnSql += m_npcVendorBuilder.ToString() + "\n";
             }
@@ -582,14 +593,20 @@ namespace WowHeadParser.Entities
                     {
                         creatureLootItemData = (CreatureLootItemParsing)creatureLootData;
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erreur : " + ex);
+                    }
 
                     CreatureLootCurrencyParsing creatureLootCurrencyData = null;
                     try
                     {
                         creatureLootCurrencyData = (CreatureLootCurrencyParsing)creatureLootData;
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erreur : " + ex);
+                    }
 
                     int minLootCount = creatureLootData.stack.Length >= 1 ? creatureLootData.stack[0] : 1;
                     int maxLootCount = creatureLootData.stack.Length >= 2 ? creatureLootData.stack[1] : minLootCount;
@@ -711,8 +728,16 @@ namespace WowHeadParser.Entities
                 returnSql += "UPDATE creature_template SET npc_flag = 16 WHERE entry = " + m_creatureTemplateData.id + ";\n";
                 foreach (CreatureTrainerParsing creatureTrainerData in m_creatureTrainerDatas)
                 {
-                    int reqskill = creatureTrainerData.learnedat > 0 ? creatureTrainerData.skill[0] : 0;
-                    m_creatureTrainerBuilder.AppendFieldsValue(m_creatureTemplateData.id, creatureTrainerData.id, creatureTrainerData.trainingcost, reqskill, creatureTrainerData.learnedat, creatureTrainerData.level);
+                    int reqskill = 0;
+                    int Learnedat = 0;
+                    int Level = 0;
+                    if (creatureTrainerData.learnedat != 9999)
+                    {
+                        Learnedat = creatureTrainerData.learnedat;
+                        Level = creatureTrainerData.level;
+                        reqskill = creatureTrainerData.learnedat > 0 ? creatureTrainerData.skill[0] : 0;
+                    }
+                    m_creatureTrainerBuilder.AppendFieldsValue(m_creatureTemplateData.id, creatureTrainerData.id, creatureTrainerData.trainingcost, reqskill, Learnedat, Level);
                 }
 
                 returnSql += m_creatureTrainerBuilder.ToString() + "\n";

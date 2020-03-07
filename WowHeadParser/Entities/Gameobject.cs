@@ -165,7 +165,10 @@ namespace WowHeadParser.Entities
                 {
                     currentItemParsing = (GameObjectLootItemParsing)gameobjectLootDatas[i];
                 }
-                catch (Exception ex) { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex);
+                }
 
                 gameobjectLootDatas[i].questRequired = currentItemParsing != null && currentItemParsing.classs == 12 ? "1": "0";
 
@@ -236,7 +239,10 @@ namespace WowHeadParser.Entities
                     {
                         currentLootCurrencyData = (GameObjectLootCurrencyParsing)gameobjectLootData;
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erreur : " + ex);
+                    }
 
                     int idMultiplier = currentLootCurrencyData != null ? -1 : 1;
 
