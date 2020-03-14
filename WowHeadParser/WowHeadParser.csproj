@@ -54,6 +54,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\Spell.cs" />
     <Compile Include="Entities\BlackMarket.cs" />
     <Compile Include="Entities\ZoneEntity.cs" />
     <Compile Include="Entities\Item.cs" />

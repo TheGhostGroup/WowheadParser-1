@@ -733,9 +733,18 @@ namespace WowHeadParser.Entities
                     int Level = 0;
                     if (creatureTrainerData.learnedat != 9999)
                     {
-                        Learnedat = creatureTrainerData.learnedat;
+                        if (creatureTrainerData.learnedat == 1)
+                        { 
+                            Learnedat = 0;
+                            reqskill = 0;
+                        }
+                        else
+                        {
+                            Learnedat = creatureTrainerData.learnedat;
+                            reqskill = creatureTrainerData.learnedat > 0 ? creatureTrainerData.skill[0] : 0;
+                        }
+
                         Level = creatureTrainerData.level;
-                        reqskill = creatureTrainerData.learnedat > 0 ? creatureTrainerData.skill[0] : 0;
                     }
                     m_creatureTrainerBuilder.AppendFieldsValue(m_creatureTemplateData.id, creatureTrainerData.id, creatureTrainerData.trainingcost, reqskill, Learnedat, Level);
                 }
@@ -745,7 +754,7 @@ namespace WowHeadParser.Entities
 
             if (IsCheckboxChecked("quest starter") && m_creatureQuestStarterDatas != null)
             {
-                m_creatureQuestStarterBuilder = new SqlBuilder("creature_queststarter", "entry", SqlQueryType.DeleteInsert);
+                m_creatureQuestStarterBuilder = new SqlBuilder("creature_queststarter", "id", SqlQueryType.DeleteInsert);
                 m_creatureQuestStarterBuilder.SetFieldsNames("quest");
 
                 foreach (QuestStarterEnderParsing creatureQuestStarterData in m_creatureQuestStarterDatas)
@@ -756,7 +765,7 @@ namespace WowHeadParser.Entities
 
             if (IsCheckboxChecked("quest ender") && m_creatureQuestEnderDatas != null)
             {
-                m_creatureQuestEnderBuilder = new SqlBuilder("creature_questender", "entry", SqlQueryType.DeleteInsert);
+                m_creatureQuestEnderBuilder = new SqlBuilder("creature_questender", "id", SqlQueryType.DeleteInsert);
                 m_creatureQuestEnderBuilder.SetFieldsNames("quest");
 
                 foreach (QuestStarterEnderParsing creatureQuestEnderData in m_creatureQuestEnderDatas)
