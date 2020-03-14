@@ -171,10 +171,13 @@ namespace WowHeadParser.Entities
                 }
 
                 gameobjectLootDatas[i].questRequired = currentItemParsing != null && currentItemParsing.classs == 12 ? "1": "0";
+                // si chance == 0 ou n'existe pas, on le met par defaut à 0.1 @TODO
+                if (gameobjectLootDatas[i].percent == null || gameobjectLootDatas[i].percent == "0")
+                    percent = 0.1f;
 
                 // Normalize
                 if (percent > 99.0f)
-                    percent = 100.0f;
+                percent = 100.0f;
 
                 gameobjectLootDatas[i].percent = Tools.NormalizeFloat(percent);
             }
