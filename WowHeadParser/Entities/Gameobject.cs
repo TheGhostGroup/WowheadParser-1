@@ -133,29 +133,38 @@ namespace WowHeadParser.Entities
 
                 try
                 {
-                    count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["count"]);
-                    outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["outof"]);
+                    count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["1"]["count"]);
+                    outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["1"]["outof"]);
                     percent = count * 100 / outof;
                 }
                 catch (Exception)
                 {
                     try
                     {
-                        count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["count"]);
-                        outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["outof"]);
+                        count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["count"]);
+                        outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["outof"]);
                         percent = count * 100 / outof;
                     }
                     catch (Exception)
                     {
                         try
                         {
-                            count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["count"]);
-                            outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["outof"]);
+                            count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["count"]);
+                            outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["outof"]);
                             percent = count * 100 / outof;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
-                            Console.WriteLine(e.Message);
+                            try
+                            {
+                                count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["count"]);
+                                outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["outof"]);
+                                percent = count * 100 / outof;
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
                     }
                 }
@@ -171,13 +180,10 @@ namespace WowHeadParser.Entities
                 }
 
                 gameobjectLootDatas[i].questRequired = currentItemParsing != null && currentItemParsing.classs == 12 ? "1": "0";
-                // si chance == 0 ou n'existe pas, on le met par defaut à 0.1 @TODO
-                if (gameobjectLootDatas[i].percent == null || gameobjectLootDatas[i].percent == "0")
-                    percent = 0.1f;
 
                 // Normalize
                 if (percent > 99.0f)
-                percent = 100.0f;
+                    percent = 100.0f;
 
                 gameobjectLootDatas[i].percent = Tools.NormalizeFloat(percent);
             }
