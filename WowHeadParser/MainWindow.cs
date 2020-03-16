@@ -248,7 +248,7 @@ namespace WowHeadParser
                 // Spell
                 case 5:
                 {
-                    selectList.Items.Add("recipe");
+                    selectList.Items.Add("spell loot");
                     break;
                 }
                 // Marché Noir

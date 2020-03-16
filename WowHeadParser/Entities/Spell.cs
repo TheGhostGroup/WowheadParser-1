@@ -105,7 +105,7 @@ namespace WowHeadParser.Entities
                         return false;
                 }
 
-                if (IsCheckboxChecked("recipe"))
+                if (IsCheckboxChecked("spell loot"))
                 {
                     String spellRecipePattern = @"new Listview\({template: 'spell', id: 'recipes', name: LANG\.tab_recipes, tabs: tabsRelated, parent: 'lkljbjkb574', sort: \['skill', 'name'\], hiddenCols: \['slot'\], visibleCols: \['source'\], data:(.+)}\);";
                     String spellRecipeJSon = Tools.ExtractJsonFromWithPattern(spellHtml, spellRecipePattern);
@@ -152,7 +152,7 @@ namespace WowHeadParser.Entities
                 return returnSql;
 
 
-            if (IsCheckboxChecked("recipe") && m_spellLootDatas != null)
+            if (IsCheckboxChecked("spell loot") && m_spellLootDatas != null)
             {
                 m_spellLootBuilder = new SqlBuilder("spell_loot_template", "entry", SqlQueryType.DeleteInsert);
                 m_spellLootBuilder.SetFieldsNames("Item", "Reference", "Chance", "QuestRequired", "LootMode", "GroupId", "MinCount", "MaxCount", "Comment");
