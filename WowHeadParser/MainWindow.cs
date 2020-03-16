@@ -208,6 +208,7 @@ namespace WowHeadParser
                     selectList.Items.Add("quest starter");
                     selectList.Items.Add("quest ender");
                     selectList.Items.Add("simple faction");
+                    selectList.Items.Add("creature model");
                     selectList.Items.Add("money");
                     break;
                 }

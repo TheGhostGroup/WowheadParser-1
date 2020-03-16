@@ -157,6 +157,7 @@ namespace WowHeadParser.Entities
                 String dataPattern = @"\$\.extend\(g_npcs\[" + m_creatureTemplateData.id + @"\], (.+)\);";
                 String creatureHealthPattern = @"<div>(?:Health|Vie) : ((?:\d|,|\.)+)</div>";
                 String creatureMoneyPattern = @"\[money=([0-9]+)\]";
+                String creatureModelIdPattern = @"WH\.ModelViewer\.showLightbox\({&quot;type&quot;:[0-9]+,&quot;typeId&quot;:" + m_creatureTemplateData.id + @",&quot;displayId&quot;:([0-9]+)}\)";
 
                 String creatureTemplateDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, dataPattern);
                 if (creatureTemplateDataJSon != null)
@@ -165,18 +166,12 @@ namespace WowHeadParser.Entities
 
                     String creatureHealthDataJSon = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureHealthPattern);
                     String creatureMoneyData = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureMoneyPattern);
-                    SetCreatureTemplateData(creatureTemplateData, creatureMoneyData, creatureHealthDataJSon);
+                    String creatureModelIdData = Tools.ExtractJsonFromWithPattern(creatureHtml, creatureModelIdPattern);
+                    SetCreatureTemplateData(creatureTemplateData, creatureModelIdData, creatureMoneyData, creatureHealthDataJSon);
 
                     // Without m_creatureTemplateData we can't really do anything, so return false
                     if (m_creatureTemplateData == null)
                         return false;
-                }
-
-                if (IsCheckboxChecked("template"))
-                {
-                    String modelPattern = @"ModelViewer\.show\(\{ type: [0-9]+, typeId: " + m_creatureTemplateData.id + @", displayId: ([0-9]+)";
-                    String modelId = Tools.ExtractJsonFromWithPattern(creatureHtml, modelPattern);
-                    m_modelid = modelId != null ? Int32.Parse(modelId) : 0;
                 }
 
                 if (IsCheckboxChecked("vendor"))
@@ -273,12 +268,13 @@ namespace WowHeadParser.Entities
             }
         }
 
-        public void SetCreatureTemplateData(CreatureTemplateParsing creatureData, String money, String creatureHealthDataJSon)
+        public void SetCreatureTemplateData(CreatureTemplateParsing creatureData, String modelid, String money, String creatureHealthDataJSon)
         {
             m_creatureTemplateData = creatureData;
 
             m_isBoss = false;
             m_faction = GetFactionFromReact();
+            m_modelid = int.Parse(modelid);
 
             if (m_creatureTemplateData.minlevel == 9999 || m_creatureTemplateData.maxlevel == 9999)
             {
@@ -300,7 +296,7 @@ namespace WowHeadParser.Entities
                 m_creatureTemplateData.minGold = (((int)Math.Floor(averageMoney / roundNumber)) * roundNumber).ToString();
                 m_creatureTemplateData.maxGold = (((int)Math.Ceiling(averageMoney / roundNumber)) * roundNumber).ToString();
             }
-
+            
             if (creatureHealthDataJSon != null)
                 m_creatureTemplateData.health = creatureHealthDataJSon.Replace(",", "");
         }
@@ -518,6 +514,18 @@ namespace WowHeadParser.Entities
 
                 m_creatureFactionBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_faction);
                 returnSql += m_creatureFactionBuilder.ToString() + "\n";
+            }
+
+            // Creature template model
+            if (IsCheckboxChecked("creature model"))
+            {
+                if(m_modelid != 0) { 
+                    SqlBuilder m_creatureModelBuilder = new SqlBuilder("creature_template_model", "CreatureID", SqlQueryType.Update);
+                    m_creatureModelBuilder.SetFieldsNames("Idx", "CreatureDisplayID", "DisplayScale", "Probability");
+
+                    m_creatureModelBuilder.AppendFieldsValue(m_creatureTemplateData.id, "0", m_modelid, "1", "1");
+                    returnSql += m_creatureModelBuilder.ToString() + "\n";
+                }
             }
 
             // Creature Template
