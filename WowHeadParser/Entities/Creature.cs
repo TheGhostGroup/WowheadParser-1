@@ -519,12 +519,17 @@ namespace WowHeadParser.Entities
             // Creature template model
             if (IsCheckboxChecked("creature model"))
             {
-                if(m_modelid != 0) { 
-                    SqlBuilder m_creatureModelBuilder = new SqlBuilder("creature_template_model", "CreatureID", SqlQueryType.Update);
-                    m_creatureModelBuilder.SetFieldsNames("Idx", "CreatureDisplayID", "DisplayScale", "Probability");
+                if(m_modelid != 0)
+                {
+                    SqlBuilder m_creatureModelInfoBuilder = new SqlBuilder("creature_model_info", "DisplayID", SqlQueryType.InsertOrUpdate);
+                    SqlBuilder m_creatureTemplateModelBuilder = new SqlBuilder("creature_template_model", "CreatureID", SqlQueryType.InsertOrUpdate);
+                    m_creatureModelInfoBuilder.SetFieldsNames("BoundingRadius", "CombatReach", "DisplayID_Other_Gender");
+                    m_creatureTemplateModelBuilder.SetFieldsNames("Idx", "CreatureDisplayID", "DisplayScale", "Probability");
 
-                    m_creatureModelBuilder.AppendFieldsValue(m_creatureTemplateData.id, "0", m_modelid, "1", "1");
-                    returnSql += m_creatureModelBuilder.ToString() + "\n";
+                    m_creatureModelInfoBuilder.AppendFieldsValue(m_modelid, "1", "1", "0");
+                    m_creatureTemplateModelBuilder.AppendFieldsValue(m_creatureTemplateData.id, "0", m_modelid, "1", "1");
+                    returnSql += m_creatureModelInfoBuilder.ToString() + "\n";
+                    returnSql += m_creatureTemplateModelBuilder.ToString() + "\n";
                 }
             }
 
