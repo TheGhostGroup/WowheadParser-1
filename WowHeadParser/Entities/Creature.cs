@@ -487,9 +487,9 @@ namespace WowHeadParser.Entities
             if (IsCheckboxChecked("template"))
             {
                 m_creatureTemplateBuilder = new SqlBuilder("creature_template", "entry");
-                m_creatureTemplateBuilder.SetFieldsNames("minlevel", "maxlevel", "name", "subname", "modelid1", "rank", "type", "family");
+                m_creatureTemplateBuilder.SetFieldsNames("name", "subname", "minlevel", "maxlevel", "faction", "family", "type");
                 if(m_creatureTemplateData.minlevel != 0 && m_creatureTemplateData.maxlevel != 0) { 
-                    m_creatureTemplateBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.minlevel, m_creatureTemplateData.maxlevel, m_creatureTemplateData.name, m_subname ?? "", m_modelid, m_isBoss ? "3" : "0", m_creatureTemplateData.type, m_creatureTemplateData.family);
+                    m_creatureTemplateBuilder.AppendFieldsValue(m_creatureTemplateData.id, m_creatureTemplateData.name, m_subname ?? "", m_creatureTemplateData.minlevel, m_creatureTemplateData.maxlevel, m_faction, m_creatureTemplateData.family, m_creatureTemplateData.type);
                     returnSql += m_creatureTemplateBuilder.ToString() + "\n";
                 }
             }
