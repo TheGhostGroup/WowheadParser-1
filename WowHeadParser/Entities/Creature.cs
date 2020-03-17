@@ -5,7 +5,6 @@ using Newtonsoft.Json;
 using Sql;
 using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using static WowHeadParser.MainWindow;
 
@@ -772,7 +771,7 @@ namespace WowHeadParser.Entities
 
                 foreach (QuestStarterEnderParsing creatureQuestStarterData in m_creatureQuestStarterDatas)
                     m_creatureQuestStarterBuilder.AppendFieldsValue(m_creatureTemplateData.id, creatureQuestStarterData.id);
-
+                returnSql += "UPDATE `creature_template` SET `npcflag`='3' WHERE `entry`='" + m_creatureTemplateData.id +"' AND `npcflag`='0';";
                 returnSql += m_creatureQuestStarterBuilder.ToString() + "\n";
             }
 
@@ -784,6 +783,7 @@ namespace WowHeadParser.Entities
                 foreach (QuestStarterEnderParsing creatureQuestEnderData in m_creatureQuestEnderDatas)
                     m_creatureQuestEnderBuilder.AppendFieldsValue(m_creatureTemplateData.id, creatureQuestEnderData.id);
 
+                returnSql += "UPDATE `creature_template` SET `npcflag`='3' WHERE `entry`='" + m_creatureTemplateData.id + "' AND `npcflag`='0';";
                 returnSql += m_creatureQuestEnderBuilder.ToString() + "\n";
             }
 
