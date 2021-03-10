@@ -38,6 +38,7 @@ namespace WowHeadParser
             comboBoxEntity.Items.Add("Quest");
             comboBoxEntity.Items.Add("Item");
             comboBoxEntity.Items.Add("Zone");
+            comboBoxEntity.Items.Add("Spell");
             comboBoxEntity.Items.Add("BlackMarket");
 
             comboBoxLocale.Items.Add("www");
@@ -153,12 +154,12 @@ namespace WowHeadParser
                 StartParsing();
 
                 setProgressBar(100);
-                timeLeftLabel.Text = "Terminé (" + (currentId + 1) + "/" + ids.Count + ")";
+                timeLeftLabel.Text = "Complete (" + (currentId + 1) + "/" + ids.Count + ")";
             }
             else
             {
                 setProgressBar(100);
-                timeLeftLabel.Text = "Terminé";
+                timeLeftLabel.Text = "Complete";
                 SetStartButtonEnableState(true);
                 currentId = 0;
             }
@@ -202,10 +203,12 @@ namespace WowHeadParser
                     selectList.Items.Add("vendor");
                     selectList.Items.Add("loot");
                     selectList.Items.Add("skinning");
+                    selectList.Items.Add("pickpocketing");
                     selectList.Items.Add("trainer");
                     selectList.Items.Add("quest starter");
                     selectList.Items.Add("quest ender");
                     selectList.Items.Add("simple faction");
+                    selectList.Items.Add("creature model");
                     selectList.Items.Add("money");
                     break;
                 }
@@ -242,8 +245,14 @@ namespace WowHeadParser
                     selectList.Items.Add("Fishing");
                     break;
                 }
-                // Marché Noir
+                // Spell
                 case 5:
+                {
+                    selectList.Items.Add("spell loot");
+                    break;
+                }
+                // Marché Noir
+                case 6:
                 {
                     selectList.Items.Add("Débug");
                     break;
@@ -272,7 +281,8 @@ namespace WowHeadParser
                 case 2: return new Quest(id);
                 case 3: return new Item(id);
                 case 4: return new ZoneEntity(id);
-                case 5: return new BlackMarket(id);
+                case 5: return new Spell(id);
+                case 6: return new BlackMarket(id);
             }
 
             return null;
@@ -281,5 +291,15 @@ namespace WowHeadParser
         private int currentId;
         private List<String> ids;
         private String m_fileName;
+
+        private void comboBoxChoice_MouseClick(object sender, MouseEventArgs e)
+        {
+            comboBoxChoice.Show();
+        }
+
+        private void comboBoxEntity_MouseClick(object sender, MouseEventArgs e)
+        {
+            comboBoxEntity.Show();
+        }
     }
 }

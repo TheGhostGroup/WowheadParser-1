@@ -80,7 +80,7 @@ namespace WowHeadParser.Entities
             String gameobjectHtml = Tools.GetHtmlFromWowhead(GetWowheadUrl());
 
             String gameobjectDataPattern = @"\$\.extend\(g_objects\[" + m_data.id + @"\], (.+)\);";
-            String gameobjectLootPattern = @"new Listview\(\{template: 'item', id: 'contains', name: LANG.tab_contains, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview.extraCols.count, Listview.extraCols.percent(?:, Listview\.extraCols\.mode)?\], sort:\['-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview.funcBox.initLootTable, onAfterCreate: Listview.funcBox.addModeIndicator, data: (.+)\}\);";
+            String gameobjectLootPattern = @"new Listview\(\{template: 'item', id: 'contains', name: LANG.tab_contains, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview.extraCols.count, Listview.extraCols.percent\], sort:\['-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview.funcBox.initLootTable, onAfterCreate: Listview.funcBox.addModeIndicator, data: (.+)\}\);";
             String gameobjectLootCurrencyPattern = @"new Listview\({template: 'currency', id: 'contains-currency', name: LANG\.tab_currencies, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent\], sort:\['-percent', 'name'\], _totalCount: [0-9]+, computeDataFunc: Listview\.funcBox\.initLootTable, onAfterCreate: Listview\.funcBox\.addModeIndicator, data: (.+)}\);";
             String gameobjectHerboPattern = @"new Listview\(\{template: 'item', id: 'herbalism', name: LANG.tab_herbalism, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview.extraCols.count, Listview.extraCols.percent\], sort:\['-percent', 'name'\], computeDataFunc: Listview.funcBox.initLootTable, note: WH\.sprintf\(LANG.lvnote_objectherbgathering, [0-9]+\), _totalCount: ([0-9]+), data: (.+)\}\);";
             String gameobjectMiningPattern = @"new Listview\(\{template: 'item', id: 'mining', name: LANG\.tab_mining, tabs: tabsRelated, parent: 'lkljbjkb574', extraCols: \[Listview\.extraCols\.count, Listview\.extraCols\.percent], sort:\['-percent', 'name'\], computeDataFunc: Listview\.funcBox\.initLootTable, note: WH\.sprintf\(LANG\.lvnote_objectmining, [0-9]+\), _totalCount: ([0-9]+), data: (.+)\}\);";
@@ -133,29 +133,38 @@ namespace WowHeadParser.Entities
 
                 try
                 {
-                    count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["count"]);
-                    outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["outof"]);
+                    count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["1"]["count"]);
+                    outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["1"]["outof"]);
                     percent = count * 100 / outof;
                 }
                 catch (Exception)
                 {
                     try
                     {
-                        count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["count"]);
-                        outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["outof"]);
+                        count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["count"]);
+                        outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["4"]["outof"]);
                         percent = count * 100 / outof;
                     }
                     catch (Exception)
                     {
                         try
                         {
-                            count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["count"]);
-                            outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["outof"]);
+                            count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["count"]);
+                            outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["2"]["outof"]);
                             percent = count * 100 / outof;
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
-                            Console.WriteLine(e.Message);
+                            try
+                            {
+                                count = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["count"]);
+                                outof = (float)Convert.ToDouble(gameobjectLootDatas[i].modes["33554432"]["outof"]);
+                                percent = count * 100 / outof;
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.Message);
+                            }
                         }
                     }
                 }
@@ -165,7 +174,10 @@ namespace WowHeadParser.Entities
                 {
                     currentItemParsing = (GameObjectLootItemParsing)gameobjectLootDatas[i];
                 }
-                catch (Exception ex) { }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Erreur : " + ex);
+                }
 
                 gameobjectLootDatas[i].questRequired = currentItemParsing != null && currentItemParsing.classs == 12 ? "1": "0";
 
@@ -236,7 +248,10 @@ namespace WowHeadParser.Entities
                     {
                         currentLootCurrencyData = (GameObjectLootCurrencyParsing)gameobjectLootData;
                     }
-                    catch (Exception ex) { }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Erreur : " + ex);
+                    }
 
                     int idMultiplier = currentLootCurrencyData != null ? -1 : 1;
 

@@ -200,7 +200,9 @@ namespace WowHeadParser.Entities
                 }
             }
             catch (Exception ex)
-            { }
+            {
+                Console.WriteLine("Erreur : " + ex);
+            }
         }
 
         public void SetTeam(bool isAlliance, bool isHorde)
